@@ -1,0 +1,1 @@
+# Install haploblocks and hapbin inside this folder

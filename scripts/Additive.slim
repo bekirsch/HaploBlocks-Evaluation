@@ -1,0 +1,209 @@
+initialize() {
+
+// A higher simplification ratio usually translates to faster computation but higher memory consumtion. More info on the concept of simplification can be found in the SLiM user manual
+	initializeTreeSeq(simplificationRatio=1000);
+// Neutral mutations are being handled afterwards by msprime, therefore the overall mutation rate is 0
+	initializeMutationRate(0);
+// Initialise the beneficical (0.5 -> additive) mutation type "m2" with selection coefficient s=0.02
+	initializeMutationType("m2", 0.5, "f", 0.02);
+// Prevent fixed alleles from being converted to substitution
+	m2.convertToSubstitution = F;
+// Initialise genetic element ("chromosome") "g1"
+	initializeGenomicElementType("g1", m2, 1);
+// Setting boundaries of g1
+	initializeGenomicElement(g1, 0, 1e7 - 1);
+// Setting the chromsome-wide recombination rate
+	initializeRecombinationRate(1e-8);
+}
+
+// Adding population to first generation
+1 late() {
+	sim.addSubpop("p1", 10000);
+}
+
+// Adding the beneficial allele to one sampled individual in the centre of g1; save the state of the simulation, in case the allele is lost and we have to start over
+100 late() {
+	defineConstant("simID", getSeed());
+	createDirectory("results/evaluation/Additive_10Mb_10kNe/simulation" + simID);
+	sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.0.trees");
+	sample(p1.genomes, 1).addNewDrawnMutation(m2, 5000000-1);
+}
+
+// Check for the existence of m2 in every generation
+// Check mutation frequency and save the state of the simulation once 2% is reached
+// And prevent the event from continuing to run after the target size has been reached
+// Reintroduce the mutation if it is lost
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) != 0)
+	{
+		if (sim.mutationFrequencies(NULL, mut) > 0.02)
+		{
+			cat(sim.generation + ": ESTABLISHED\n");
+    			sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.02.trees");
+			cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+			sim.deregisterScriptBlock(self);
+		}
+	}
+	else
+	{
+		cat(sim.generation + ": LOST - RETRY\n");
+		sim.readFromPopulationFile("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.0.trees");
+		setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+		sample(p1.genomes, 1).addNewDrawnMutation(m2, 5000000-1);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 5% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.05)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.05\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.05.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 10% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.1)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.1\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.1.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 20% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.2)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.2\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.2.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 30% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.3)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.3\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.3.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 40% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.4)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.4\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.4.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 50% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.5)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.5\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.5.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 60% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.6)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.6\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.6.trees");
+
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 70% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.7)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.7\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.7.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 80% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.8)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.8\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.8.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once 90% is reached
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) > 0.9)
+	{
+		cat(sim.generation + ": REACHED ALLELE FREQUENCY OF 0.9\n");
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF0.9.trees");
+		sim.deregisterScriptBlock(self);
+	}
+}
+
+// Check mutation frequency and save the state of the simulation once the allele is fixed
+// See line 32
+100: late() {
+	mut = sim.mutationsOfType(m2);
+	if (sim.mutationFrequencies(NULL, mut) == 1)
+	{
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+		sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_mF1.0.trees");
+
+		stop(sim.generation + ": FIXED");
+	}
+	else
+	{
+		cat(sim.generation + ": Frequency:" + sim.mutationFrequencies(NULL, mut) + "\n");
+	}
+}
+
+// In case the allele is still not fixed, stop the simulation and save the state
+10000 late() {
+  sim.treeSeqOutput("results/evaluation/Additive_10Mb_10kNe/simulation" + simID + "/" + simID + "_sC0.02_elapsed.trees");
+	sim.simulationFinished();
+}
