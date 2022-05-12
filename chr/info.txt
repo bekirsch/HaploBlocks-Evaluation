@@ -1,2 +1,2 @@
 # Place your VCF and corresponding genetic map in this folder
-# Files needed for running hapbin and haploblocks will be generated herein
+# Files needed for running haploblocks will be generated herein
