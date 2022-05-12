@@ -24,10 +24,10 @@ cd ../../
 
 ## Install prerequisites
 
-You will need Python (version 3) with pip and the GNU scientific library (`gsl`) (for msprime/pyslim), as well as R (for plotting) and cmake (for SLiM). To install these on Ubuntu:
+You will need Python (version 3) with pip and the GNU scientific library (`gsl`) (for msprime/pyslim), as well as R (for plotting), cmake (for SLiM) and GNU parallel (for multithreading if needed). To install these on Ubuntu:
 
 ```
-sudo apt-get install python3-pip libgsl-dev r-base-core cmake
+sudo apt-get install python3-pip libgsl-dev r-base-core cmake parallel
 ```
 
 ## Install python modules
