@@ -50,10 +50,8 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
 
 # Validation on simulated data
 
-## Figure 1 a)
-
 <details>
-    <summary>Show code</summary>
+    <summary>Figure 1 a)</summary>
 
    ### Software Versions:
 
