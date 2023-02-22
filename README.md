@@ -3,11 +3,11 @@
 This repository contains all code used for evaluating [HaploBlocks](https://github.com/bekirsch/HaploBlocks) on simulated data as well as an example on how to perform a chromosome-wide scan.
 
 We assume from here on that you have cloned this github repository into a directory called e.g.
-`haploblocks-evaluation`, and are running commands from within it, e.g. using
+`cd HaploBlocks-Evaluation`, and are running commands from within it, e.g. using
 
 ```
 git clone https://github.com/bekirsch/HaploBlocks-Evaluation.git
-cd haploblocks-evaluation
+cd HaploBlocks-Evaluation
 ```
 
 # Requirements and dependencies
