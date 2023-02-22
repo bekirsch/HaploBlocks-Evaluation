@@ -55,15 +55,15 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
 <details>
     <summary>Show code</summary>
 
-    ### Software Versions:
+   ### Software Versions:
 
-    SLiM:       3.4
+   SLiM:       3.4
 
-    tskit:      0.3.2
+   tskit:      0.3.2
 
-    pyslim:     0.403
+   pyslim:     0.403
 
-    msprime:    0.7.4
+   msprime:    0.7.4
 
     1. Create a directory for simulations:
     ```
