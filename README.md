@@ -125,11 +125,7 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
    ```
    8. Count the simulations (needed for plotting):
    ```
-   a
-   9. Plot Figure:
-   ```
-   Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
-   ```ll=$(ls results/evaluation/Additive_10Mb_10kNe/output/*filtered.sHat.csv | wc -l)
+   all=$(ls results/evaluation/Additive_10Mb_10kNe/output/*filtered.sHat.csv | wc -l)
    files=$((all / 13))
    ```
 
@@ -140,19 +136,21 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
 
 </details>
 
-## Figure 1 b)
+<details>
+    <summary>Figure 1 b)</summary>
+
+   ### Software Versions:
+
+   SLiM:       3.4
+
+   tskit:      0.3.2
+
+   pyslim:     0.403
+
+   msprime:    0.7.4
 
 
-### Software Versions:
-
-SLiM:       3.4
-
-tskit:      0.3.2
-
-pyslim:     0.403
-
-msprime:    0.7.4
-
+</details>
 <!---
 
 1. Create a directory for simulations:
