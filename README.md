@@ -65,80 +65,80 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
 
    msprime:    0.7.4
 
-    1. Create a directory for simulations:
-    ```
-    mkdir results/evaluation/Additive_10Mb_10kNe
-    ```
-    2. Define a function for simulating:
-    ```
-    simulating() {
-    seed=$(openssl rand 4 | od -DAn);
-    slim -s $seed scripts/Additive.slim &>/dev/null;
-    trees=$(echo "results/evaluation/Additive_10Mb_10kNe/simulation${seed}/${seed}_sC0.02_mF*.trees" | tr -d ' ');
+   1. Create a directory for simulations:
+   ```
+   mkdir results/evaluation/Additive_10Mb_10kNe
+   ```
+   2. Define a function for simulating:
+   ```
+   simulating() {
+   seed=$(openssl rand 4 | od -DAn);
+   slim -s $seed scripts/Additive.slim &>/dev/null;
+   trees=$(echo "results/evaluation/Additive_10Mb_10kNe/simulation${seed}/${seed}_sC0.02_mF*.trees" | tr -d ' ');
 
-    for file in $trees; do
-        python3 scripts/recapitation.py -i $file &>/dev/null;
-        line=$(cat ${file/.trees/.trees.vcf} | grep -n '4999999' | cut -f1 | cut -d":" -f1)
-        cat ${file/.trees/.trees.vcf} | awk -F '\t' -v OFS='\t' -v m=$line -v n=4 -v el='0' 'NR == m { $n = el } 1' | awk -F '\t' -v OFS='\t' -v m=$line -v n=5 -v el='1' 'NR == m { $n = el } 1' | gzip > ${file/.trees/.trees.uniform.vcf.gz}
-        rm ${file/.trees/.trees.vcf}
-    done
-    }
-    export -f simulating
-    ```
+   for file in $trees; do
+       python3 scripts/recapitation.py -i $file &>/dev/null;
+       line=$(cat ${file/.trees/.trees.vcf} | grep -n '4999999' | cut -f1 | cut -d":" -f1)
+       cat ${file/.trees/.trees.vcf} | awk -F '\t' -v OFS='\t' -v m=$line -v n=4 -v el='0' 'NR == m { $n = el } 1' | awk -F '\t' -v OFS='\t' -v m=$line -v n=5 -v el='1' 'NR == m { $n = el } 1' | gzip > ${file/.trees/.trees.uniform.vcf.gz}
+       rm ${file/.trees/.trees.vcf}
+   done
+   }
+   export -f simulating
+   ```
 
-    3. Run 50 simulations (make use of GNU parallel to speed up - provided your setup allows it), one of which is started via:
-    ```
-    for i in {1..50}; do simulating; done
-    ```
+   3. Run 50 simulations (make use of GNU parallel to speed up - provided your setup allows it), one of which is started via:
+   ```
+   for i in {1..50}; do simulating; done
+   ```
 
-    4. Create a lookup-table:
-    ```
-    tools/haploblocks/filter_lookup -max_k 2000 > results/evaluation/Additive_10Mb_10kNe/ancestry.lookup
-    ```
+   4. Create a lookup-table:
+   ```
+   tools/haploblocks/filter_lookup -max_k 2000 > results/evaluation/Additive_10Mb_10kNe/ancestry.lookup
+   ```
 
-    5. Create a directory for the output:
-    ```
-    mkdir results/evaluation/Additive_10Mb_10kNe/output
-    ```
+   5. Create a directory for the output:
+   ```
+   mkdir results/evaluation/Additive_10Mb_10kNe/output
+   ```
 
-    6. Define a function for running haploblocks:
-    ```
-    haploblocks() {
-    vcf_gz=$1;
-    vcf=${vcf_gz/.vcf.gz/.vcf}
-    cmap=${vcf/.vcf/.vcf.positions};
-    rmap=${cmap/.positions/.positions.map};
+   6. Define a function for running haploblocks:
+   ```
+   haploblocks() {
+   vcf_gz=$1;
+   vcf=${vcf_gz/.vcf.gz/.vcf}
+   cmap=${vcf/.vcf/.vcf.positions};
+   rmap=${cmap/.positions/.positions.map};
 
-    zcat $vcf_gz > $vcf
-    tools/haploblocks/extract_positions -i $vcf -o $cmap &>/dev/null;
-    awk -v OFS='\t' '{print "chr1", "snp"NR, (50*log(1/(1-(2*1e-8*$0)))), $0}' $cmap | tr ',' '.' > $rmap;
-    tools/haploblocks/full --out_folder results/evaluation/Additive_10Mb_10kNe/output --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/Additive_10Mb_10kNe/ancestry.lookup --remove &>/dev/null;
+   zcat $vcf_gz > $vcf
+   tools/haploblocks/extract_positions -i $vcf -o $cmap &>/dev/null;
+   awk -v OFS='\t' '{print "chr1", "snp"NR, (50*log(1/(1-(2*1e-8*$0)))), $0}' $cmap | tr ',' '.' > $rmap;
+   tools/haploblocks/full --out_folder results/evaluation/Additive_10Mb_10kNe/output --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/Additive_10Mb_10kNe/ancestry.lookup --remove &>/dev/null;
 
-    rm $vcf;
-    rm $cmap;
-    rm $rmap;
-    }
-    export -f haploblocks
-    ```
+   rm $vcf;
+   rm $cmap;
+   rm $rmap;
+   }
+   export -f haploblocks
+   ```
 
-    7. Run haploblocks:
-    ```
-    for file in results/evaluation/Additive_10Mb_10kNe/simulation*/*.uniform.vcf.gz; do haploblocks $file; done
-    ```
-    8. Count the simulations (needed for plotting):
-    ```
-    a
-    9. Plot Figure:
-    ```
-    Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
-    ```ll=$(ls results/evaluation/Additive_10Mb_10kNe/output/*filtered.sHat.csv | wc -l)
-    files=$((all / 13))
-    ```
+   7. Run haploblocks:
+   ```
+   for file in results/evaluation/Additive_10Mb_10kNe/simulation*/*.uniform.vcf.gz; do haploblocks $file; done
+   ```
+   8. Count the simulations (needed for plotting):
+   ```
+   a
+   9. Plot Figure:
+   ```
+   Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
+   ```ll=$(ls results/evaluation/Additive_10Mb_10kNe/output/*filtered.sHat.csv | wc -l)
+   files=$((all / 13))
+   ```
 
-    9. Plot Figure:
-    ```
-    Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
-    ```
+   9. Plot Figure:
+   ```
+   Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
+   ```
 
 </details>
 
