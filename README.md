@@ -6,7 +6,7 @@ We assume from here on that you have cloned this github repository into a direct
 `haploblocks-evaluation`, and are running commands from within it, e.g. using
 
 ```
-git clone https://github.com/BeGerweck/haploblocks-evaluation.git
+git clone https://github.com/bekirsch/HaploBlocks-Evaluation.git
 cd haploblocks-evaluation
 ```
 
