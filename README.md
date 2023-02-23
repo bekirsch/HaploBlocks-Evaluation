@@ -84,7 +84,7 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
    export -f simulating
    ```
 
-   3. Run 50 simulations (make use of GNU parallel to speed up - provided your setup allows it), one of which is started via:
+   3. Run 50 simulations (make use of GNU parallel to speed up - provided your setup allows it):
    ```
    for i in {1..50}; do simulating; done
    ```
@@ -149,85 +149,96 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
 
    msprime:    0.7.4
 
-
-</details>
-<!---
-
-1. Create a directory for simulations:
+1. create directory for simulations:
 ```
-mkdir results/evaluation/Additive_10Mb_10kNe
+mkdir results/evaluation/Gravel_CEU
 ```
+
 2. Define a function for simulating:
 ```
-simulating() {
-seed=$(openssl rand 4 | od -DAn);
-slim -s $seed scripts/Additive.slim &>/dev/null;
-trees=$(echo "results/evaluation/Additive_10Mb_10kNe/simulation${seed}/${seed}_sC0.02_mF*.trees" | tr -d ' ');
-
-for file in $trees; do
-  python3 scripts/recapitation.py -i $file &>/dev/null;
-  line=$(cat ${file/.trees/.trees.vcf} | grep -n '4999999' | cut -f1 | cut -d":" -f1)
-  cat ${file/.trees/.trees.vcf} | awk -F '\t' -v OFS='\t' -v m=$line -v n=4 -v el='0' 'NR == m { $n = el } 1' | awk -F '\t' -v OFS='\t' -v m=$line -v n=5 -v el='1' 'NR == m { $n = el } 1' | gzip > ${file/.trees/.trees.uniform.vcf.gz}
-  rm ${file/.trees/.trees.vcf}
-done
+simulating_Gravel_CEU() {
+  seed=$(openssl rand 4 | od -DAn);
+  slim -s $seed -d gen=$1 scripts/Gravel_CEU.slim;
 }
-export -f simulating
+export -f simulating_Gravel_CEU
 ```
 
-3. Run 50 simulations (make use of GNU parallel to speed up - provided your setup allows it), one of which is started via:
+3. Define a function for recapitation:
 ```
-for i in {1..50}; do simulating; done
+recap_Gravel_CEU() {
+  trees=$1
+  python3 scripts/recapitation_gravel_CEU.py -i $trees;
+  line=$(cat ${trees/.trees/.trees.vcf} | grep -n '5000000' | cut -f1 | cut -d":" -f1)
+  cat ${trees/.trees/.trees.vcf} | awk -F '\t' -v OFS='\t' -v m=$line -v n=4 -v el='0' 'NR == m { $n = el } 1' | awk -F '\t' -v OFS='\t' -v m=$line -v n=5 -v el='1' 'NR == m { $n = el } 1' | gzip > ${trees/.trees/.trees.uniform.vcf.gz}
+  rm ${trees/.trees/.trees.vcf}
+  line=$(zcat ${trees/.trees/.trees.uniform.vcf.gz} | cut -f2 | grep -n '\<5000000\>' | cut -d':' -f1);
+  zcat ${trees/.trees/.trees.uniform.vcf.gz} | awk -v li=$line 'NR==li' | cut -f1-9 --complement | grep -o '1' | wc -l > ${trees/.trees/.trees.uniform.vcf.gz.count}
+}
+export -f recap_Gravel_CEU
 ```
+4. Run simulations:
 
-4. Create a lookup-table:
-tools/haploblocks/filter_lookup -max_k 2000 > results/evaluation/```
-```
-Additive_10Mb_10kNe/ancestry.lookup
-```
+We run more simulations for intermediate generations ago, to ensure sufficient intermediate frequencies are reached.
 
-5. Create a directory for the output:
+  For upper and lower frequencies:
+  ```
+  for g in 5850 5800 5750 5700 5650 5300 5250 5200 5150; do
+	  for i in {1..20}; do simulating_Gravel_CEU $g; done
+  done
+  ```
+  For intermediate frequencies:
+  ```
+  for g in 5600 5550 5500 5450 5400 5350; do
+	  for i in {1..40}; do simulating_Gravel_CEU $g; done
+  done
+  ```
+  And to recapitate:
+  ```
+  for file in results/evaluation/Gravel_CEU/*simulation*/*trees; do recap_Gravel_CEU $file; done
+  ```
+5. Create directory for output:
 ```
-mkdir results/evaluation/Additive_10Mb_10kNe/output
+mkdir results/evaluation/output_gravel_CEU
+mv results/evaluation/Gravel_CEU/*simulation*/*.count results/evaluation/output_gravel_CEU
 ```
-
-6. Define a function for running haploblocks:
+6. Define a function for running HaploBlocks:
 ```
-haploblocks() {
+haploblocks_gravel_CEU() {
 vcf_gz=$1;
 vcf=${vcf_gz/.vcf.gz/.vcf}
 cmap=${vcf/.vcf/.vcf.positions};
 rmap=${cmap/.positions/.positions.map};
-
 zcat $vcf_gz > $vcf
 tools/haploblocks/extract_positions -i $vcf -o $cmap &>/dev/null;
 awk -v OFS='\t' '{print "chr1", "snp"NR, (50*log(1/(1-(2*1e-8*$0)))), $0}' $cmap | tr ',' '.' > $rmap;
-tools/haploblocks/full --out_folder results/evaluation/Additive_10Mb_10kNe/output --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/Additive_10Mb_10kNe/ancestry.lookup --remove &>/dev/null;
-
+tools/haploblocks/full --out_folder results/evaluation/output_gravel_CEU --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/ancestry.lookup --remove &>/dev/null;
 rm $vcf;
 rm $cmap;
 rm $rmap;
 }
-export -f haploblocks
+export -f haploblocks_gravel_CEU
+```
+7. Run HaploBlocks:
+```
+for file in results/evaluation/Gravel_CEU/*simulation*/*.uniform.vcf.gz; do haploblocks_gravel_CEU $file; done
 ```
 
-7. Run haploblocks:
+8. Plot results;
 ```
-for file in results/evaluation/Additive_10Mb_10kNe/simulation*/*.uniform.vcf.gz; do haploblocks $file; done
-```
-8. Count the simulations (needed for plotting):
-```
-a
-9. Plot Figure:
-```
-Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
-```ll=$(ls results/evaluation/Additive_10Mb_10kNe/output/*filtered.sHat.csv | wc -l)
-files=$((all / 13))
+Rscript scripts/Plot_Fig1b.R results/evaluation/output_gravel_CEU $files
 ```
 
-9. Plot Figure:
-```
-Rscript scripts/Plot_Fig1a.R results/evaluation/Additive_10Mb_10kNe/output $files
-```
+
+</details>
+
+
+
+
+
+
+<!---
+
+
 
 
 
