@@ -1,0 +1,90 @@
+initialize() {
+	initializeTreeSeq();
+	//initializeMutationRate(2.36e-8);
+	initializeMutationRate(0);
+	initializeMutationType("m2", 0.5, "f", 0.03);
+	m2.convertToSubstitution = F;
+	initializeGenomicElementType("g1", m2, 1);
+	initializeGenomicElement(g1, 0, 1e7 - 1);
+	initializeRecombinationRate(1e-8);
+}
+// INITIALIZE the ancestral African population
+1 {
+	defineConstant("simID", getSeed());
+	sim.addSubpop("p1", asInteger(round(7310.370867595234)));
+	createDirectory("results/evaluation/Gravel_CEU/" + gen + "simulation" + simID);
+	sim.rescheduleScriptBlock(s1, start=gen, end=gen);
+	sim.rescheduleScriptBlock(s2, start=gen, end=5921);
+}
+
+//1: {
+//	cat("Generation: " + sim.generation + "\n");
+//}
+
+// END "BURN-IN"; EXPAND the African population
+2 { p1.setSubpopulationSize(asInteger(round(14474.54608753566)));
+}
+// SPLIT Eurasians (p2) from Africans (p1) and SET UP MIGRATION
+3865 {
+	sim.addSubpopSplit("p2", asInteger(round(1861.288190027689)), p1);
+	p1.setMigrationRates(c(p2), c(15.24422112e-5));
+	p2.setMigrationRates(c(p1), c(15.24422112e-5));
+}
+// SPLIT p2 into European (p2) and East Asian (p3); RESIZE; MIGRATION
+4980 {
+	sim.addSubpopSplit("p3", asInteger(round(553.8181989)), p2);
+	p2.setSubpopulationSize(asInteger(round(1032.1046957333444)));
+	p1.setMigrationRates(c(p2, p3), c(2.54332678e-5, 0.7770583877e-5));
+	p2.setMigrationRates(c(p1, p3), c(2.54332678e-5, 3.115817913e-5));
+	p3.setMigrationRates(c(p1, p2), c(0.7770583877e-5, 3.115817913e-5));
+}
+// SET UP EXPONENTIAL GROWTH in Europe (p2) and East Asia (p3)
+4980:5921 {
+	t = sim.generation - 4980;
+	p2_size = round(1032.1046957333444 * (1 + 0.003784324268)^t);
+	p3_size = round(553.8181989 * (1 + 0.004780219543)^t);
+	p2.setSubpopulationSize(asInteger(p2_size));
+	p3.setSubpopulationSize(asInteger(p3_size));
+}
+
+// introduce selective sweep in europe
+s1 5498 late(){
+	sim.outputFull("/tmp/slim_" + simID + ".txt");
+	sample(p2.genomes, 1).addNewDrawnMutation(m2, 5e6);
+}
+
+s2 5498: late() {
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1) {
+		cat(sim.generation + ": MUTATION EXISTS\n");
+	}
+	else {
+		cat(simID + ": LOST – RESTARTING\n");
+		// go back to generation 1000 
+		sim.readFromPopulationFile("/tmp/slim_" + simID + ".txt");
+		// start a newly seeded run 
+		setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+		// re-introduce the sweep mutation
+		sample(p2.genomes, 1).addNewDrawnMutation(m2, 5e6);
+	}
+}
+
+
+// OUTPUT AND TERMINATE
+5921 late() {
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1) {
+		cat(sim.generation + ": MUTATION EXISTS in final generation\n");
+		sim.treeSeqOutput("results/evaluation/Gravel_CEU/" + gen + "simulation" + simID + "/" + simID + "_EUR.trees");
+		sim.simulationFinished();
+	}
+	else {
+		cat(simID + ": LOST – RESTARTING\n");
+		// go back to generation 1000 
+		sim.readFromPopulationFile("/tmp/slim_" + simID + ".txt");
+		// start a newly seeded run 
+		setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+		// re-introduce the sweep mutation
+		sample(p2.genomes, 1).addNewDrawnMutation(m2, 5e6);
+	}
+}

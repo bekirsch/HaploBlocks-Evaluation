@@ -91,7 +91,7 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
 
    4. Create a lookup-table:
    ```
-   tools/haploblocks/filter_lookup -max_k 2000 > results/evaluation/Additive_10Mb_10kNe/ancestry.lookup
+   tools/HaploBlocks/build/filter_lookup -max_k 2000 > results/evaluation/Additive_10Mb_10kNe/ancestry.lookup
    ```
 
    5. Create a directory for the output:
@@ -99,29 +99,29 @@ Download and install [SLiM](http://messerlab.org/slim/) following their user man
    mkdir results/evaluation/Additive_10Mb_10kNe/output
    ```
 
-   6. Define a function for running haploblocks:
+   6. Define a function for running HaploBlocks:
    ```
-   haploblocks() {
+   HaploBlocks() {
    vcf_gz=$1;
    vcf=${vcf_gz/.vcf.gz/.vcf}
    cmap=${vcf/.vcf/.vcf.positions};
    rmap=${cmap/.positions/.positions.map};
 
    zcat $vcf_gz > $vcf
-   tools/haploblocks/extract_positions -i $vcf -o $cmap &>/dev/null;
+   tools/HaploBlocks/build/extract_positions -i $vcf -o $cmap &>/dev/null;
    awk -v OFS='\t' '{print "chr1", "snp"NR, (50*log(1/(1-(2*1e-8*$0)))), $0}' $cmap | tr ',' '.' > $rmap;
-   tools/haploblocks/full --out_folder results/evaluation/Additive_10Mb_10kNe/output --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/Additive_10Mb_10kNe/ancestry.lookup --remove &>/dev/null;
+   tools/HaploBlocks/build/full --out_folder results/evaluation/Additive_10Mb_10kNe/output --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/Additive_10Mb_10kNe/ancestry.lookup --remove &>/dev/null;
 
    rm $vcf;
    rm $cmap;
    rm $rmap;
    }
-   export -f haploblocks
+   export -f HaploBlocks
    ```
 
-   7. Run haploblocks:
+   7. Run HaploBlocks:
    ```
-   for file in results/evaluation/Additive_10Mb_10kNe/simulation*/*.uniform.vcf.gz; do haploblocks $file; done
+   for file in results/evaluation/Additive_10Mb_10kNe/simulation*/*.uniform.vcf.gz; do HaploBlocks $file; done
    ```
    8. Count the simulations (needed for plotting):
    ```
@@ -203,24 +203,24 @@ mv results/evaluation/Gravel_CEU/*simulation*/*.count results/evaluation/output_
 ```
 6. Define a function for running HaploBlocks:
 ```
-haploblocks_gravel_CEU() {
+HaploBlocks_gravel_CEU() {
 vcf_gz=$1;
 vcf=${vcf_gz/.vcf.gz/.vcf}
 cmap=${vcf/.vcf/.vcf.positions};
 rmap=${cmap/.positions/.positions.map};
 zcat $vcf_gz > $vcf
-tools/haploblocks/extract_positions -i $vcf -o $cmap &>/dev/null;
+tools/HaploBlocks/extract_positions -i $vcf -o $cmap &>/dev/null;
 awk -v OFS='\t' '{print "chr1", "snp"NR, (50*log(1/(1-(2*1e-8*$0)))), $0}' $cmap | tr ',' '.' > $rmap;
-tools/haploblocks/full --out_folder results/evaluation/output_gravel_CEU --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/ancestry.lookup --remove &>/dev/null;
+tools/HaploBlocks/full --out_folder results/evaluation/output_gravel_CEU --vcf_path $vcf --genetic_map_path $rmap --lookup_path results/evaluation/ancestry.lookup --remove &>/dev/null;
 rm $vcf;
 rm $cmap;
 rm $rmap;
 }
-export -f haploblocks_gravel_CEU
+export -f HaploBlocks_gravel_CEU
 ```
 7. Run HaploBlocks:
 ```
-for file in results/evaluation/Gravel_CEU/*simulation*/*.uniform.vcf.gz; do haploblocks_gravel_CEU $file; done
+for file in results/evaluation/Gravel_CEU/*simulation*/*.uniform.vcf.gz; do HaploBlocks_gravel_CEU $file; done
 ```
 
 8. Plot results;
