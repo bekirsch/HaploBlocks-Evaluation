@@ -223,7 +223,7 @@ export -f HaploBlocks_gravel_CEU
 for file in results/evaluation/Gravel_CEU/*simulation*/*.uniform.vcf.gz; do HaploBlocks_gravel_CEU $file; done
 ```
 
-8. Plot results;
+8. Plot results:
 ```
 Rscript scripts/Plot_Fig1b.R results/evaluation/output_gravel_CEU $files
 ```
@@ -231,16 +231,35 @@ Rscript scripts/Plot_Fig1b.R results/evaluation/output_gravel_CEU $files
 
 </details>
 
+# Benchmarks
+
+To perform benchmarks similar to those presented in our paper (the UKB dataset is not publicly available), please install RAiSD and download chromosome 2 from the 1000 Genome Phase 3 dataset.
+
+<details>
+    <summary>Figure 2</summary>
+
+   ### Software Versions:
+
+   RAISD:       2.9
 
 
+1. Download and install [RAiSD](https://github.com/alachins/raisd) to the following their instructions, again preferably in `HaploBlocks-Evaluation/tools`.
+
+2. Download and unpack [chromosome 2](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz):
+
+**Note:** The unpacked size of this vcf is ~72GB. You can use a smaller chromosome instead.
+
+```
+mkdir chr
+cd chr/
+wget http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz
+gzip -d ALL.chr2.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz
+```
+3. Download the appropriate genetic maps, i.e.:
+```
+wget https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/plink.GRCh37.map.zip
+unzip plink.GRCh37.map.zip
+```
 
 
-
-<!---
-
-
-
-
-
-# Run selection scan
-
+</details>
