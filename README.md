@@ -265,7 +265,7 @@ unzip plink.GRCh37.map.zip
 sudo apt install vcftools
 ```
 
-5. Remove indels and for MAF > 0.01:
+5. Remove indels and filter for MAF > 0.01:
 ```
 file=ALL.chr2.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf
 vcftools --vcf $file --remove-indels --maf 0.01 --recode --out ${file/.vcf/.MAF0.01}
@@ -274,23 +274,24 @@ vcftools --vcf $file --remove-indels --maf 0.01 --recode --out ${file/.vcf/.MAF0
 6. Extract a list of all SNPs:
 ```
 file=ALL.chr2.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.MAF0.01.recode.vcf
-cat $file | grep -v '#' | cut -f3 > ${file/.vcf/.SNPs}
+cat $file | grep -v '#' | cut -f1-2 > ${file/.vcf/.SNPs}
 ```
 
 7. Generate random SNP-lists:
 ```
-cat ${file/.vcf/.SNPs} | shuf -n100 > 100SNPs.list
-cat ${file/.vcf/.SNPs} | shuf -n1000 > 1kSNPs.list
-cat ${file/.vcf/.SNPs} | shuf -n10000 > 10kSNPs.list
-cat ${file/.vcf/.SNPs} | shuf -n100000 > 100kSNPs.list
+cat ${file/.vcf/.SNPs} | shuf -n100 > temp.1; sort -n -k2 temp.1 > 100SNPs.list
+cat ${file/.vcf/.SNPs} | shuf -n1000 > temp.1; sort -n -k2 temp.1 > 1kSNPs.list
+cat ${file/.vcf/.SNPs} | shuf -n10000 > temp.1; sort -n -k2 temp.1 > 10kSNPs.list
+cat ${file/.vcf/.SNPs} | shuf -n100000 > temp.1; sort -n -k2 temp.1 > 100kSNPs.list
+rm temp.1
 ```
 
 8. Generate vcfs containing only these SNPs:
 ```
-vcftools --vcf $file --snps 100SNPs.list --recode --out ${file/.recode.vcf/.100SNPs}
-vcftools --vcf $file --snps 1kSNPs.list --recode --out ${file/.recode.vcf/.1kSNPs}
-vcftools --vcf $file --snps 10kSNPs.list --recode --out ${file/.recode.vcf/.10kSNPs}
-vcftools --vcf $file --snps 100kSNPs.list --recode --out ${file/.recode.vcf/.100kSNPs}
+vcftools --vcf $file --positions 100SNPs.list --recode --out ${file/.recode.vcf/.100SNPs}
+vcftools --vcf $file --positions 1kSNPs.list --recode --out ${file/.recode.vcf/.1kSNPs}
+vcftools --vcf $file --positions 10kSNPs.list --recode --out ${file/.recode.vcf/.10kSNPs}
+vcftools --vcf $file --positions 100kSNPs.list --recode --out ${file/.recode.vcf/.100kSNPs}
 ```
 
 9. Generate vcfs containg different numbers of random individuals:
@@ -307,45 +308,8 @@ for vcf in *.recode.vcf; do ../tools/RAiSD -n $vcf -I $vcf -f; done
 
 </details>
 
+# Work in progress - the remaining figures will be added gradually!
+
 <!---
-
- Generate a genetic map-file for each sample
-for vcf in *s.recode.vcf; do cat $vcf | grep -v '#' | awk '{ print $1 "\t" $3 "\t" $2 "\t"  $2}' > ${vcf/s.recode.vcf/s.recode.vcf.rmap}; done
-
-# Benchmark hapbin
-for vcf in *s.recode.vcf; do taskset 1 /usr/bin/time -v ../tools/hapbin/build/ihsbin --hap ${vcf/s.recode.vcf/s.recode.vcf.impute.hap} --map ${vcf/s.recode.vcf/s.recode.vcf.rmap} --minmaf 0.0 --out '../results/benchmark/'${vcf/s.recode.vcf/s.recode.vcf.impute.hap.out} &> '../results/benchmark/'${vcf/s.recode.vcf/s.recode.vcf.impute.hap.out.bench}; done
-
-# Extract results for individuals
-for file in ../results/benchmark/*INDs.*.out.bench; do (cat $file | grep 'Haplotype count' | cut -d' ' -f3; cat $file | grep 'User time' | cut -d' ' -f4; cat $file | grep 'Maximum resident' | cut -d' ' -f6) > ${file/.bench/.benchN}; done
-paste ../results/benchmark/*INDs.*.out.benchN | awk '{ print $4 "\t" $2 "\t" $5 "\t" $1 "\t" $3}' > ../results/benchmark/hapbinIND.bench
-
-# Extract results for SNPs
-for file in ../results/benchmark/*SNPs.*.out.bench; do (cat $file | grep 'Loaded' | cut -d' ' -f2; cat $file | grep 'User time' | cut -d' ' -f4; cat $file | grep 'Maximum resident' | cut -d' ' -f6) > ${file/.bench/.benchN}; done
-paste ../results/benchmark/*SNPs.*.out.benchN | awk '{ print $2 "\t" $4 "\t" $3 "\t" $1}' > ../results/benchmark/hapbinSNP.bench
-
-# Remove temporary files
-rm ../results/benchmark/*.out.benchN
-
-# Compute lookup-table for 1000 Genomes phase 3
-../tools/haploblocks/filter_lookup -max_k 5008 > 1000GPP3.lookup
-
-# Benchmark haploblocks
-for vcf in *s.recode.vcf; do taskset 1 /usr/bin/time -v ../tools/haploblocks/full --out_folder ./ --vcf_path $vcf --genetic_map_path plink.chr22.GRCh37.map --lookup_path 1000GPP3.lookup --remove &> '../results/benchmark/'${vcf/s.recode.vcf/s.recode.vcf.blocks.bench}; done
-
-# Extract results for individuals
-for file in ../results/benchmark/*INDs.*.blocks.bench; do (cat $file | grep 'individuals' | cut -d' ' -f1; cat $file | grep 'User time' | cut -d' ' -f4; cat $file | grep 'Maximum resident' | cut -d' ' -f6) > ${file/.bench/.benchN}; done
-paste ../results/benchmark/*INDs.*.blocks.benchN | awk '{ print $4 "\t" $2 "\t" $5 "\t" $1 "\t" $3}' > ../results/benchmark/haploblocksIND.bench
-
-# Extract results for SNPs
-for file in ../results/benchmark/*SNPs.*.blocks.bench; do (cat $file | grep 'Wrote' | cut -d' ' -f2; cat $file | grep 'User time' | cut -d' ' -f4; cat $file | grep 'Maximum resident' | cut -d' ' -f6) > ${file/.bench/.benchN}; done
-paste ../results/benchmark/*SNPs.*.blocks.benchN | awk '{ print $2 "\t" $4 "\t" $3 "\t" $1}' > ../results/benchmark/haploblocksSNP.bench
-
-# Remove temporary files
-rm ../results/benchmark/*.blocks.benchN
-
-# Plot results
-Rscript ../scripts/Plot_benchmark.R ../results/benchmark/
-
-cd ../
 
 --->
