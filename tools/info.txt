@@ -1,1 +1,0 @@
-# Install haploblocks inside this folder

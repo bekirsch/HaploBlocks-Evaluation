@@ -1,4 +1,5 @@
 argparse
-msprime
+tskit
 pyslim
+msprime
 numpy
